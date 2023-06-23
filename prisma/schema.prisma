@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid()) @unique
+  username String @unique
+  first_name String @db.VarChar(50) 
+  last_name String @db.VarChar(50)
+  password String @db.VarChar(128)
+  createAt DateTime @default(now()) @db.Timestamp()
+  messages Message[] @relation("messageToUser")
+  groups UsersOnGroups[]
+  group_app_id String
+  group_app GroupApp @relation(fields: [group_app_id], references: [id])
+  @@map("users")
+}
+
+model GroupApp{
+  id String @id @default(uuid()) @unique
+  groups Group[]
+  users User[]
+  @@map("group_apps")
+}
+
+model Group{
+  id String @id @default(uuid()) @unique
+  name String
+  messages Message[] @relation("messageToGroup")
+  users UsersOnGroups[]
+  group_app_id String
+  group_app GroupApp @relation(fields: [group_app_id], references: [id])
+  @@map("group")
+}
+
+model Message {
+  id String @id @default(uuid()) @unique
+  sender User @relation("messageToUser",fields:[userId], references:[id])
+  createAt DateTime @default(now()) @db.Timestamp()
+  userId String
+  groupId String
+  group Group @relation("messageToGroup", fields: [groupId], references: [id])
+  content String
+  @@map("message")
+}
+
+
+
+
+model UsersOnGroups{
+  groups Group  @relation(fields: [groupId], references: [id])
+  groupId String 
+  users User @relation(fields: [userId], references: [id])
+  userId String
+  @@id([groupId, userId])
+}

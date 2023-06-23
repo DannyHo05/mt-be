@@ -1,0 +1,47 @@
+
+version: '3.9'
+
+services:
+  db:
+    image: postgres:14.1-alpine
+    container_name: ${DB_NAME}
+    restart: always
+    tty: true
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - '8432:5432'
+    volumes:
+      - mt-db:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  pgadmin:
+    image: dpage/pgadmin4:6.18
+    networks:
+      - mynetwork
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    env_file:
+      - docker.env
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+volumes:
+  mt-db:
+    driver: local
+  pgadmin:
+
+networks:
+  mynetwork:
+    driver: bridge
